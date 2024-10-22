@@ -64,8 +64,6 @@ else:
 
 ```{python}
 # Creating a DataFrame and the GreatTable
-import pandas as pd
-from great_tables import GT, md
 
 # Construct the DataFrame
 df = pd.DataFrame({"Report ID": report_ids, "Adverse Events": adverse_events})
@@ -85,10 +83,6 @@ GT(df).tab_header(
 ## This part containts the data prep and great_tables in one code block
 
 ```{python}
-
-import requests
-import pandas as pd
-from great_tables import GT, md
 
 def get_openfda_data(endpoint, query_params):
     base_url = "https://api.fda.gov"
