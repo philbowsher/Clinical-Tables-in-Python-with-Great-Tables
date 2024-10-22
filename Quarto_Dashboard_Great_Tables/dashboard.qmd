@@ -93,7 +93,7 @@ dict(
 
 ```{python}
 
-#| title: Table top 5 reactions using great_tables
+#| title: Table top 10 reactions using great_tables
 # Create and configure the table using GreatTable
 GT(top10_df).tab_header(
     title="Top 10 Adverse Events for Tylenol by Gender",
