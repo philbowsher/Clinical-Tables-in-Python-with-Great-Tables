@@ -184,5 +184,7 @@ gt_table_final = (
 
 gt_table_final
 
-gt_table_final.save("image.png")
+# gt_table_final.save("image.png")
+
+# If you wanted the HTML for the table, you can use the .as_raw_html() method. It doesn’t write an HTML page to a file though, it returns a string with the HTML text for a table element (wrapped in a div with a style element). You can try using gt_table_final.as_raw_html() to get the HTML for the table. It doesn’t write HTML to a file though, it returns that table HTML as a string.
 ```
