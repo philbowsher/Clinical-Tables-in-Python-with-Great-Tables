@@ -1,0 +1,132 @@
+---
+title: "Tylenol Adverse Events Analysis"
+author: "Phil Bowsher"
+format: 
+  dashboard:
+    theme: united
+    code-fold: true
+    toc: true
+    toc-depth: 2
+---
+
+```{python}
+# Import necessary libraries
+import requests
+import pandas as pd
+import matplotlib.pyplot as plt
+from great_tables import GT, md
+
+# Helper function to fetch data
+def get_openfda_data(endpoint, query_params):
+    base_url = "https://api.fda.gov"
+    try:
+        url = f"{base_url}/{endpoint}.json"
+        response = requests.get(url, params=query_params)
+        if response.status_code == 200:
+            data = response.json()
+            return data
+        else:
+            print(f"Error: {response.status_code}")
+            return None
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+# Fetch and prepare data
+endpoint = "drug/event"
+query_params = {
+    "search": "patient.drug.medicinalproduct:tylenol",
+    "limit": 1000,
+}
+
+data = get_openfda_data(endpoint, query_params)
+
+records = []
+if data and "results" in data:
+    for event in data["results"]:
+        gender_code = event.get("patient", {}).get("patientsex", None)
+        gender = "Male" if gender_code == "1" else "Female" if gender_code == "2" else "Unknown"
+        events = [reaction["reactionmeddrapt"] for reaction in event.get("patient", {}).get("reaction", [])]
+        for ev in events:
+            records.append({
+                "Adverse Event": ev,
+                "Gender": gender
+            })
+
+# Create DataFrame
+df = pd.DataFrame(records)
+
+# Pivot and count occurrences by gender
+pivot_df = df.pivot_table(
+    index='Adverse Event', 
+    columns='Gender', 
+    aggfunc='size', 
+    fill_value=0
+).reset_index()
+
+pivot_df['Total'] = pivot_df.select_dtypes(include=['number']).sum(axis=1)
+
+# Sort by the total count and select the top 10
+top10_df = pivot_df.sort_values(by='Total', ascending=False).head(10)
+
+# Summary stats
+max_male = top10_df['Male'].max()
+max_female = top10_df['Female'].max()
+top_reaction = top10_df.iloc[0]['Adverse Event']
+```
+
+# Stats
+
+## Row
+
+```{python}
+#| component: valuebox
+#| title: Top Reaction
+dict(
+    icon = "vial",
+    color = "primary",
+    value = top_reaction
+)
+```
+
+## Row {height=40%}
+
+```{python}
+
+#| title: Table top 5 reactions using great_tables
+# Create and configure the table using GreatTable
+GT(top10_df).tab_header(
+    title="Top 10 Adverse Events for Tylenol by Gender",
+    subtitle="Most frequent adverse event reports for male and female patients retrieved from OpenFDA"
+).tab_stub(
+    rowname_col="Adverse Event"
+).tab_stubhead(
+    label="Patient Reaction"
+).tab_source_note(
+    source_note=md("Data obtained from the OpenFDA database of 1000 data points.")
+)
+```
+
+
+```{python}
+#| warning: false
+#| title: Visualize top 5 reactions using matplotlib
+
+top5_df = top10_df.head(5) ;
+top5_df.plot(kind='bar', x='Adverse Event', y=['Male', 'Female'], stacked=True, color=['orange', 'purple']) ;
+plt.title('Top 5 Adverse Events by Gender') ;
+plt.ylabel('Number of Cases') ;
+plt.xlabel('Adverse Event') ;
+plt.xticks(rotation=45, ha='right') ;
+plt.show();
+```
+
+# Data
+
+This dashboard is based on openfda. [Data obtained from the OpenFDA database of 1000 data points.](https://open.fda.gov/) online API.
+
+If you want to conduct your own analysis, see the following resources:
+
+| Resource             | Link               |
+|----------------------|--------------------|
+| openfda data    | [openfda](https://open.fda.gov/) |

@@ -1,0 +1,7 @@
+faicons
+shiny
+seaborn
+pandas
+numpy
+great_tables
+plotnine
