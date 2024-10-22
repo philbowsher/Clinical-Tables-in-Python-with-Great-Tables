@@ -183,4 +183,6 @@ gt_table_final = (
 )
 
 gt_table_final
+
+gt_table_final.save("image.png")
 ```
